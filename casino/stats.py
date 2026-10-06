@@ -46,8 +46,8 @@ def display_stats(stats: GameStats) -> None:
 
     label_width = max(len(r[0]) for r in rows)
     value_width = max(len(r[1]) for r in rows)
-    inner_width = label_width + value_width + 6  # padding + colon + spaces
-    box_width = inner_width + 4  # borders + margin
+    inner_width = label_width + value_width + 7  # padding + colon + spaces
+    box_width = inner_width + 2  # borders + margin
 
     title = " Session Summary "
     side = (box_width - 2 - len(title)) // 2
