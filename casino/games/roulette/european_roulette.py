@@ -10,6 +10,7 @@ import casino.utils as utils
 from casino.types import GameContext
 from casino.utils import clear_screen, cprint, cinput, display_topbar
 from casino.accounts import Account
+from casino.stats import display_stats, GameStats
 
 ROULETTE_HEADER = """
 ┌────────────────────────────────────────────────┐
@@ -649,6 +650,7 @@ def play_european_roulette(context: GameContext) -> None:
     accounts = [context.account]
 
     roulette = EuropeanRoulette(accounts)
+    stats = GameStats("European Roulette", context.account.balance)
     while True:
         roulette.reset_round()
         render_header(context)
@@ -657,14 +659,21 @@ def play_european_roulette(context: GameContext) -> None:
         choice = cinput("Press [Enter] to start a new round and [q] to quit: ").strip().lower()
 
         if choice in {"q", "quit"}:
-            return
-
+            break
+        old_balance = context.account.balance
         status = roulette.submit_bets(context)
         if status == "BANKRUPT":
-            return
+            break
 
         roulette.spin_wheel(context)
         roulette.payout()
+        if context.account.balance > old_balance:
+            stats.rounds_played+=1
+            stats.wins+=1
+        elif context.account.balance < old_balance:
+            stats.rounds_played+=1
+            stats.losses+=1
+
         refresh_roulette_topbar(context)
 
         # play again?
@@ -672,7 +681,7 @@ def play_european_roulette(context: GameContext) -> None:
         if play_again in {"", "y", "yes"}:
             pass  # next round
         elif play_again in {"n", "no"}:
-            return
+            break
         else:
             play_again = prompt_with_error(
                 ctx=context,
@@ -683,4 +692,6 @@ def play_european_roulette(context: GameContext) -> None:
                 transform=lambda s: s.strip().lower(),
             )
             if play_again in {"n", "no"}:
-                return
+                break
+    stats.ending_balance = context.account.balance
+    display_stats(stats)
